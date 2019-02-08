@@ -13,27 +13,22 @@ np.random.seed(1001)
 class Network(nn.Module):
     def __init__(self):
         super(Network, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels = 1, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)
+        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)
         self.conv2 = nn.Conv2d(in_channels = 16, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)
-        self.conv3 = nn.Conv2d(in_channels = 16, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)
-        self.conv4 = nn.Conv2d(in_channels = 16, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)        
-        self.fc_2 = nn.Linear(256, 32)
-        self.fc_1 = nn.Linear(32, 2)
+        self.pool = nn.MaxPool2d((32, 32))
+        self.fc_1 = nn.Linear(16, 2)
 
     def forward(self, x):
         conv_1 = F.relu(self.conv1(x))
         conv_2 = F.relu(self.conv2(conv_1))
-        conv_3 = F.relu(self.conv3(conv_2))
-        conv_4 = F.relu(self.conv4(conv_3))        
-        flat = conv_4.view(-1, 256)
-        fc_2 = F.relu(self.fc_2(flat))
-        y = F.log_softmax(self.fc_1(fc_2), dim = 1)
+        pool = self.pool(conv_2)
+        flat = pool.view(-1, 16)
+        y = F.log_softmax(self.fc_1(flat), dim = 1)
         return y
 
 def loadData(path):
     data = h5py.File(path, 'r')
     return torch.from_numpy(data['X'][:]), torch.from_numpy(data['Y'][:]).long()
-
 
 def trainTest(data, batch_size, network, criterion, optimizer, is_train = True):
     data_X, data_Y = data
@@ -73,8 +68,8 @@ lr = 0.001
 optimizer = optim.Adam(network.parameters(), lr = lr)
 
 print('Load data')
-train_X, train_Y = loadData('data/shapes/classifier/train.h5')
-valid_X, valid_Y = loadData('data/shapes/classifier/valid.h5')
+train_X, train_Y = loadData('data/train.h5')
+valid_X, valid_Y = loadData('data/valid.h5')
 print(train_X.size(), train_Y.size())
 
 epochs = 100
@@ -83,12 +78,12 @@ batch_size = 16
 test_loss, _ = trainTest((valid_X, valid_Y), batch_size, network, criterion, optimizer, is_train = False)
 print('Test loss for random basline = {}'.format(test_loss))
 
-MODE = 'TEST'
+MODE = 'TRAIN'
 finetune = False
 
 if 'TRAIN' in MODE:
     if finetune == True:
-        network.load_state_dict(torch.load('models/shapes/classifier'))
+        network.load_state_dict(torch.load('models/classifier'))
         print('Finetuning network')
     # Training
     loss_history = [np.inf]
@@ -106,8 +101,8 @@ if 'TRAIN' in MODE:
 
         impatience += 1
         if valid_loss < min(loss_history):
-            print('A better model has been obtained. Saving this model to models/shapes/classifier')
-            torch.save(network.state_dict(), 'models/shapes/classifier')
+            print('A better model has been obtained. Saving this model to models/classifier')
+            torch.save(network.state_dict(), 'models/classifier')
             best_loss, best_epoch = valid_loss, epoch + 1
             impatience = 0
         loss_history.append(valid_loss)
@@ -117,7 +112,7 @@ if 'TRAIN' in MODE:
                 lr /= 2
                 optimizer = optim.Adam(network.parameters(), lr = lr)
                 limit -= 1
-                network.load_state_dict(torch.load('models/shapes/classifier'))
+                network.load_state_dict(torch.load('models/classifier'))
             else:
                 break
     print('Finished Training: best model at {} epochs with valid loss = {}'.format(best_epoch, best_loss))
@@ -126,7 +121,7 @@ if 'TEST' in MODE:
     test_X, test_Y = valid_X, valid_Y
     #test_X, test_Y = train_X, train_Y
     # Testing
-    network.load_state_dict(torch.load('models/shapes/classifier', map_location = lambda storage, loc : storage))
+    network.load_state_dict(torch.load('models/classifier', map_location = lambda storage, loc : storage))
     print('Loaded model, starting prediction')
     start = time.time()
     batch_size = 10
@@ -136,6 +131,6 @@ if 'TEST' in MODE:
     print('Accuracy = {}%'.format(np.sum(pred_Y == test_Y) / test_Y.shape[0] * 100))
     print('Test loss = {}'.format(test_loss))
     print('Time taken (ms) = {}'.format((end - start) / test_Y.shape[0] * 1000))
-    with open('models/shapes/results_classifier.txt', 'w') as f:
+    with open('models/results_classifier.txt', 'w') as f:
         for index in range(test_Y.shape[0]):
             f.write('{},{}\n'.format(int(test_Y[index]), int(pred_Y[index])))
