@@ -1,0 +1,102 @@
+import cv2
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import shutil
+import h5py
+
+imsize = 128
+scale = 1.0 / 255.0
+
+def drawLines(images, paths, min_diff, min_len):
+
+	short_len, long_len = 0, 0
+	while long_len - short_len <= min_diff:
+		short_len, long_len = np.random.randint(min_len, imsize - 10, 2)
+
+	lens = [short_len, long_len]
+
+	for image_path, image, image_len in zip(paths, images, lens):
+		start, end, ang = (-1, -1), (-1, -1), -1
+		while any(cord < 0 or cord > imsize for cord in list(end)) is True:
+			start = tuple(np.random.randint(0, imsize, 2))
+			ang = np.random.randint(0, 360) * np.pi / 180
+			end = int(start[0] + image_len * np.sin(ang)), int(start[1] + image_len * np.cos(ang))
+
+
+		cv2.line(image, start, end, (255, 255, 255), 2)
+		cv2.imwrite(image_path, image)
+
+def draw(stage, num_images, seed, min_diff, min_len):
+
+    np.random.seed(seed)
+
+    for i in range(num_images):
+        short_image = np.zeros((imsize, imsize))
+        long_image = np.zeros_like(short_image)
+        drawLines([short_image, long_image], ['data/{}/{}_short.jpg'.format(stage, i), 'data/{}/{}_long.jpg'.format(stage, i)], min_diff, min_len)
+
+def getHDF5():
+
+    for stage in ['train', 'valid', 'test']:
+        stage_images = []
+        stage_labels = []
+        image_ids = []
+        num_images = len(os.listdir('data/{}'.format(stage))) // 2
+        for i in range(num_images):
+            short_image = cv2.imread('data/{}/{}_short.jpg'.format(stage, i), 0)
+            long_image = cv2.imread('data/{}/{}_long.jpg'.format(stage, i), 0)
+            if i % 2 == 0:
+                stage_images.append(np.stack([short_image, long_image]))
+                stage_labels.append(0)
+            else:
+                stage_images.append(np.stack([long_image, short_image]))
+                stage_labels.append(1)
+        if 'train' in stage:
+            train_X = np.float32(stage_images) * scale
+            train_Y = np.float32(stage_labels)
+        elif 'valid' in stage:
+            valid_X = np.float32(stage_images) * scale
+            valid_Y = np.float32(stage_labels)			
+        else:
+            test_X = np.float32(stage_images) * scale
+            test_Y = np.float32(stage_labels)
+
+    np.random.seed(1729)
+    imsize = train_X.shape[1]
+
+    print('Train images : ', train_X.shape, train_Y.shape)
+    print('Valid images : ', valid_X.shape, valid_Y.shape)
+    print('Test images : ', test_X.shape, test_Y.shape)
+
+    indices = np.arange(train_X.shape[0])
+    np.random.shuffle(indices)
+    with h5py.File('data/train.h5', 'w') as dataset:
+        dataset.create_dataset(data = train_X[indices], name = 'X', shape = train_X.shape, dtype = train_X.dtype)
+        dataset.create_dataset(data = train_Y[indices], name = 'Y', shape = train_Y.shape, dtype = train_Y.dtype)
+
+    indices = np.arange(valid_X.shape[0])
+    np.random.shuffle(indices)
+    with h5py.File('data/valid.h5', 'w') as dataset:
+        dataset.create_dataset(data = valid_X[indices], name = 'X', shape = valid_X.shape, dtype = valid_X.dtype)
+        dataset.create_dataset(data = valid_Y[indices], name = 'Y', shape = valid_Y.shape, dtype = valid_Y.dtype)
+
+    indices = np.arange(test_X.shape[0])
+    np.random.shuffle(indices)
+    with h5py.File('data/test.h5', 'w') as dataset:
+        dataset.create_dataset(data = test_X[indices], name = 'X', shape = test_X.shape, dtype = test_X.dtype)
+        dataset.create_dataset(data = test_Y[indices], name = 'Y', shape = test_Y.shape, dtype = test_Y.dtype)
+
+if os.path.isdir('data/train'):
+    shutil.rmtree('data/train')
+if os.path.isdir('data/valid'):
+    shutil.rmtree('data/valid')
+if os.path.isdir('data/test'):
+    shutil.rmtree('data/test')
+os.mkdir('data/train')
+os.mkdir('data/valid')
+os.mkdir('data/test')
+draw('train', 10000, 1001, 60, 30)
+draw('valid', 100, 1729, 30, 30)
+draw('test', 100, 1123, 10, 30)
+getHDF5()

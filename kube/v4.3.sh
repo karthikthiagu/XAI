@@ -8,6 +8,8 @@ export LD_LIBRARY_PATH=/tools/local/lib:/tools/cuda-9.0/lib64:/tools/cuda-9.0/ex
 export CUDA_HOME=/tools/cuda-9.0
 
 # Tools config for CUDA, Anaconda installed in the common /tools directory
-cd /storage/home/karthikt/SparseExplanations
+cd /storage/home/karthikt/XAI
 source /scratch/scratch4/karthikt/envs/magic35/bin/activate
-python -u scripts/classifier_sparse.py &> out
+python -u models/v4.3/classifier_train.py --epochs 50 --lr 0.001 --batch_size 16 --patience 15 --limit 3 --save_model 'models/v4.3/classifier' &> models/v4.3/log_train
+python -u models/v4.3/classifier_test.py --batch_size 10 --load_model 'models/v4.3/classifier' --save_results 'models/v4.3/results' &> models/v4.3/log_test
+python -u models/v4.3/visualize.py --load_model 'models/v4.3/classifier' --plot_folder 'models/v4.3/plots' --num_maps 2 &> models/v4.3/log_vizualize

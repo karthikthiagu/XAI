@@ -7,22 +7,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-device = torch.device('cpu')
+device = torch.device('cuda')
 np.random.seed(1001)
 
 class Network(nn.Module):
     def __init__(self):
         super(Network, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)
-        self.conv2 = nn.Conv2d(in_channels = 16, out_channels = 16, kernel_size = 3, stride = 2, padding = 1, bias = False)
+        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 8, kernel_size = 9, stride = 2, padding = 1, bias = False)
+        self.conv2 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 9, stride = 2, padding = 1, bias = False)
         self.pool = nn.MaxPool2d((32, 32))
-        self.fc_1 = nn.Linear(16, 2)
+        self.fc_1 = nn.Linear(8, 2)
 
     def forward(self, x):
         conv_1 = F.relu(self.conv1(x))
         conv_2 = F.relu(self.conv2(conv_1))
         pool = self.pool(conv_2)
-        flat = pool.view(-1, 16)
+        flat = pool.view(-1, 8)
         y = F.log_softmax(self.fc_1(flat), dim = 1)
         return y
 

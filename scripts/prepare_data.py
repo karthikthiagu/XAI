@@ -29,16 +29,16 @@ def drawLines(images, paths):
 		cv2.line(image, start, end, (255, 255, 255), 2)
 		cv2.imwrite(image_path, image)
 
-def draw(stage, num_images):
+def draw(stage, num_images, seed):
 
+    np.random.seed(seed)
 
-	for i in range(num_images):
-		short_image = np.zeros((imsize, imsize))
-		long_image = np.zeros_like(short_image)
-		drawLines([short_image, long_image], ['data/{}/{}_short.jpg'.format(stage, i), 'data/{}/{}_long.jpg'.format(stage, i)])
+    for i in range(num_images):
+        short_image = np.zeros((imsize, imsize))
+        long_image = np.zeros_like(short_image)
+        drawLines([short_image, long_image], ['data/{}/{}_short.jpg'.format(stage, i), 'data/{}/{}_long.jpg'.format(stage, i)])
 
 def getHDF5():
-
 
 	for stage in ['train', 'valid']:
 		stage_images = []
@@ -79,11 +79,12 @@ def getHDF5():
 	    dataset.create_dataset(data = valid_X[indices], name = 'X', shape = valid_X.shape, dtype = valid_X.dtype)
 	    dataset.create_dataset(data = valid_Y[indices], name = 'Y', shape = valid_Y.shape, dtype = valid_Y.dtype)
 
-
-shutil.rmtree('data/train')
-shutil.rmtree('data/valid')
+if os.path.isdir('data/train'):
+    shutil.rmtree('data/train')
+if os.path.isdir('data/valid'):
+    shutil.rmtree('data/valid')
 os.mkdir('data/train')
 os.mkdir('data/valid')
-draw('train', 1000)
-draw('valid', 100)
+draw('train', 10000, 1001)
+draw('valid', 100, 1729)
 getHDF5()
