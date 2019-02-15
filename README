@@ -1,0 +1,3 @@
+Run python models/v1/data.py to generate data
+Run kube/v1.sh to train, test and visualize the model
+v3 has adversarial.py to generate and visualize adversarial examples
