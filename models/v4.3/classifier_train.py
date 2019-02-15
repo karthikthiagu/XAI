@@ -3,37 +3,13 @@ import h5py
 import numpy as np
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 
 from argparser import parseArguments
 
+from model import Network
+
 device = torch.device('cuda')
-np.random.seed(1001)
-
-class Network(nn.Module):
-    def __init__(self):
-        super(Network, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.conv2 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.conv3 = nn.Conv2d(in_channels = 8, out_channels = 2, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.pool = nn.MaxPool2d((16, 16))
-        self.fc_1 = nn.Linear(2, 2, bias = False)
-
-    def forward(self, x):
-        conv_1 = F.relu(self.conv1(x))
-        #print(conv_1.size())
-        conv_2 = F.relu(self.conv2(conv_1))
-        #print(conv_2.size())
-        conv_3 = F.relu(self.conv3(conv_2))
-        #print(conv_3.size())
-        pool = self.pool(conv_3)
-        #print(pool.size())
-        flat = pool.view(-1, 2)
-        #print(flat.size())
-        y = F.log_softmax(self.fc_1(flat), dim = 1)
-        return y, flat
+np.random.seed(1013)
 
 def loadData(path):
     data = h5py.File(path, 'r')
@@ -74,17 +50,18 @@ def getAcc(pred, truth):
 args = parseArguments()
 epochs, batch_size, lr = args.epochs, args.batch_size, args.lr
 train_file, valid_file = args.train_file, args.valid_file
+num_maps = args.num_maps
 finetune = args.finetune
 patience, limit = args.patience, args.limit
 load_model, save_model = args.load_model, args.save_model
 
 #################  Network definition #####################
 ###########################################################
-network = Network().to(device)
+network = Network(num_maps).to(device)
 print(network)
 print('Number of parameters = ', sum(p.numel() for p in network.parameters() if p.requires_grad))
-criterion = nn.NLLLoss(reduction = 'sum')
-optimizer = optim.Adam(network.parameters(), lr = lr)
+criterion = torch.nn.NLLLoss(reduction = 'sum')
+optimizer = torch.optim.Adam(network.parameters(), lr = lr)
 
 #################  Data loading ##########################
 ##########################################################
@@ -129,7 +106,7 @@ for epoch in range(epochs):
         impatience = 0
         if limit != 0:
             lr /= 2
-            optimizer = optim.Adam(network.parameters(), lr = lr)
+            optimizer = torch.optim.Adam(network.parameters(), lr = lr)
             limit -= 1
             network.load_state_dict(torch.load(save_model))
         else:

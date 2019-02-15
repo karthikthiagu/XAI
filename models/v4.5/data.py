@@ -71,19 +71,19 @@ def getHDF5():
 
     indices = np.arange(train_X.shape[0])
     np.random.shuffle(indices)
-    with h5py.File('data/train.h5', 'w') as dataset:
+    with h5py.File('/scratch/scratch2/karthikt/data/train.h5', 'w') as dataset:
         dataset.create_dataset(data = train_X[indices], name = 'X', shape = train_X.shape, dtype = train_X.dtype)
         dataset.create_dataset(data = train_Y[indices], name = 'Y', shape = train_Y.shape, dtype = train_Y.dtype)
 
     indices = np.arange(valid_X.shape[0])
     np.random.shuffle(indices)
-    with h5py.File('data/valid.h5', 'w') as dataset:
+    with h5py.File('/scratch/scratch2/karthikt/data/valid.h5', 'w') as dataset:
         dataset.create_dataset(data = valid_X[indices], name = 'X', shape = valid_X.shape, dtype = valid_X.dtype)
         dataset.create_dataset(data = valid_Y[indices], name = 'Y', shape = valid_Y.shape, dtype = valid_Y.dtype)
 
     indices = np.arange(test_X.shape[0])
     np.random.shuffle(indices)
-    with h5py.File('data/test.h5', 'w') as dataset:
+    with h5py.File('/scratch/scratch2/karthikt/data/test.h5', 'w') as dataset:
         dataset.create_dataset(data = test_X[indices], name = 'X', shape = test_X.shape, dtype = test_X.dtype)
         dataset.create_dataset(data = test_Y[indices], name = 'Y', shape = test_Y.shape, dtype = test_Y.dtype)
 
@@ -96,7 +96,7 @@ if os.path.isdir('data/test'):
 os.mkdir('data/train')
 os.mkdir('data/valid')
 os.mkdir('data/test')
-draw('train', 10000, 1001, 60, 30)
+draw('train', 20000, 1001, 50, 30)
 draw('valid', 100, 1729, 30, 30)
 draw('test', 100, 1123, 10, 30)
 getHDF5()

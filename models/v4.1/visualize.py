@@ -8,35 +8,13 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 from argparser import parseArguments
+
+from model import Network
+
 device = torch.device('cuda')
 np.random.seed(1001)
-
-class Network(nn.Module):
-    def __init__(self):
-        super(Network, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.conv2 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.conv3 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.pool = nn.MaxPool2d((16, 16))
-        self.fc_1 = nn.Linear(8, 2, bias = False)
-
-    def forward(self, x):
-        conv_1 = F.relu(self.conv1(x))
-        #print(conv_1.size())
-        conv_2 = F.relu(self.conv2(conv_1))
-        #print(conv_2.size())
-        conv_3 = F.relu(self.conv3(conv_2))
-        #print(conv_3.size())
-        pool = self.pool(conv_3)
-        #print(pool.size())
-        flat = pool.view(-1, 8)
-        #print(flat.size())
-        y = F.log_softmax(self.fc_1(flat), dim = 1)
-        return y, [conv_3, flat]
 
 def loadData(path):
     data = h5py.File(path, 'r')
@@ -50,7 +28,7 @@ plot_folder = args.plot_folder
 num_maps = args.num_maps
 
 ########## Network definition ##########
-network = Network().to(device)
+network = Network(num_maps).to(device)
 network.load_state_dict(torch.load(load_model, map_location = lambda storage, loc : storage))
 
 ######### Load data ###############
@@ -98,7 +76,7 @@ for index in range(test_X.shape[0]):
                 axes[i, j].axis('off')
         fig.set_size_inches(10, 10)
         left_right = test_X[index].cpu().numpy().reshape((2, imsize, imsize)) * 255.0
-        text = 'Label = {}, Prediction = {}\n Prob for class {} = {:.4f}\n Map for class {}'.format(label, pred, plot_index, prob[plot_index], plot_index)
+        text = 'Label = {}, Prediction = {}\n Prob for class {} = {:.4f}\n Map for class {}'.format(int(label), pred, plot_index, prob[plot_index], plot_index)
         plt.suptitle(text)
         axes[0, 0].imshow(left_right[0], cmap = 'gray')
         axes[0, 1].imshow(left_right[1], cmap = 'gray')
@@ -107,7 +85,7 @@ for index in range(test_X.shape[0]):
         for m in range(8):
             mplot = np.copy(feat[m])
             mplot = mplot - np.min(mplot)
-            mplot = mplot / (np.max(mplot) + 0.00001) * 255.0
+            mplot = cv2.resize(mplot / (np.max(mplot) + 0.00001) * 255.0, (imsize, imsize))
             rp, cp = (m + 4) // 4, m % 4
             axes[rp, cp].imshow(mplot, cmap = 'jet')
             axes[rp, cp].axis('off')

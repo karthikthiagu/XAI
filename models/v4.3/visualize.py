@@ -8,35 +8,13 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 from argparser import parseArguments
+
+from model import Network
+
 device = torch.device('cuda')
 np.random.seed(1001)
-
-class Network(nn.Module):
-    def __init__(self):
-        super(Network, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.conv2 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.conv3 = nn.Conv2d(in_channels = 8, out_channels = 2, kernel_size = 9, stride = 2, padding = 4, bias = False)
-        self.pool = nn.MaxPool2d((16, 16))
-        self.fc_1 = nn.Linear(2, 2, bias = False)
-
-    def forward(self, x):
-        conv_1 = F.relu(self.conv1(x))
-        #print(conv_1.size())
-        conv_2 = F.relu(self.conv2(conv_1))
-        #print(conv_2.size())
-        conv_3 = F.relu(self.conv3(conv_2))
-        #print(conv_3.size())
-        pool = self.pool(conv_3)
-        #print(pool.size())
-        flat = pool.view(-1, 2)
-        #print(flat.size())
-        y = F.log_softmax(self.fc_1(flat), dim = 1)
-        return y, [conv_3, flat]
 
 def loadData(path):
     data = h5py.File(path, 'r')
@@ -50,7 +28,7 @@ plot_folder = args.plot_folder
 num_maps = args.num_maps
 
 ########## Network definition ##########
-network = Network().to(device)
+network = Network(num_maps).to(device)
 network.load_state_dict(torch.load(load_model, map_location = lambda storage, loc : storage))
 
 ######### Load data ###############
@@ -107,7 +85,7 @@ for index in range(test_X.shape[0]):
         for m in range(2):
             mplot = np.copy(feat[m])
             mplot = mplot - np.min(mplot)
-            mplot = mplot / (np.max(mplot) + 0.00001) * 255.0
+            mplot = cv2.resize(mplot / (np.max(mplot) + 0.00001) * 255.0, (imsize, imsize))
             rp, cp = 1, m % 2
             axes[rp, cp].imshow(mplot, cmap = 'jet')
             axes[rp, cp].set_title('w = {:.2f}, a = {:.2f}'.format(W[plot_index, m], flat[m]))

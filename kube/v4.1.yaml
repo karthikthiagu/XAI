@@ -29,9 +29,9 @@ spec:
   - name: scratch4
     persistentVolumeClaim:
       claimName: scratch4
-#  - name: scratch2
-#    persistentVolumeClaim:
-#      claimName: scratch2
+  - name: scratch2
+    persistentVolumeClaim:
+      claimName: scratch2
   # The following 3 entries make the Nvidia drivers available. You do not need to
   # modify them.
   - hostPath:
@@ -73,11 +73,11 @@ spec:
         alpha.kubernetes.io/nvidia-gpu: 1 # Number of GPUs
         # RAM can be specified in either MiB (1024x1024 bytes) (ex. "500Mi")
         # or GiB (ex. "4Gi")
-        memory: "4Gi"
-        cpu: "4" # Number of CPU cores
+        memory: "10Gi"
+        cpu: "6" # Number of CPU cores
       requests:
-        memory: "4Gi"
-        cpu: "4"
+        memory: "10Gi"
+        cpu: "6"
     # Here, you can specify where you want the above directories to be mounted
     # within the container. It is recommended to use this configuration as
     # it mirrors what is present on the master machine.
@@ -97,8 +97,8 @@ spec:
 #      name: data3
     - mountPath: /scratch/scratch4
       name: scratch4
- #   - mountPath: /scratch/scratch2
- #     name: scratch2
+    - mountPath: /scratch/scratch2
+      name: scratch2
     - mountPath: /usr/local/nvidia/bin
       name: nvbin
     - mountPath: /usr/local/nvidia/lib
