@@ -8,6 +8,8 @@ import h5py
 imsize = 128
 scale = 1.0 / 255.0
 
+## This is the file for creating the dataset for parallel lines
+
 def drawLines(images, paths, min_diff, min_len):
 
 	short_len, long_len = 0, 0
