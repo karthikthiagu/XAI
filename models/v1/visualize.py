@@ -49,7 +49,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 for index in range(test_X.shape[0]):
     label = test_Y[index]
     # Get predictions
-    prob, feats = network(test_X[index].view(1, 2, imsize, imsize))
+    prob, feats = network(test_X[index].view(1, 1, imsize, imsize))
     prob = np.exp(prob[0].detach().cpu().numpy())
     pred = np.argmax(prob)
 
@@ -69,24 +69,23 @@ for index in range(test_X.shape[0]):
         cam = cv2.resize(cam, (imsize, imsize))
 
         # Plot maps
-        rows, cols = 2, 3
+        rows, cols = 3, 4
         fig, axes = plt.subplots(rows, cols)
         for i in range(rows):
             for j in range(cols):
                 axes[i, j].axis('off')
         fig.set_size_inches(10, 10)
-        left_right = test_X[index].cpu().numpy().reshape((2, imsize, imsize)) * 255.0
+        image = test_X[index].cpu().numpy().reshape((imsize, imsize)) * 255.0
         text = 'Label = {}, Prediction = {}\n Prob for class {} = {:.4f}\n Map for class {}'.format(label, pred, plot_index, prob[plot_index], plot_index)
         plt.suptitle(text)
-        axes[0, 0].imshow(left_right[0], cmap = 'gray')
-        axes[0, 1].imshow(left_right[1], cmap = 'gray')
-        axes[0, 2].imshow(cam, cmap = 'jet')
+        axes[0, 0].imshow(image, cmap = 'gray')
+        axes[0, 1].imshow(cam, cmap = 'jet')
 
-        for m in range(2):
+        for m in range(num_maps):
             mplot = np.copy(feat[m])
             mplot = mplot - np.min(mplot)
             mplot = cv2.resize(mplot / (np.max(mplot) + 0.00001) * 255.0, (imsize, imsize))
-            rp, cp = 1, m % 2
+            rp, cp = m // 4 + 1, m % 4
             axes[rp, cp].imshow(mplot, cmap = 'jet')
             axes[rp, cp].set_title('w = {:.2f}, a = {:.2f}'.format(W[plot_index, m], flat[m]))
 

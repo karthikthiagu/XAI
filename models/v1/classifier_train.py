@@ -13,7 +13,8 @@ np.random.seed(1001)
 
 def loadData(path):
     data = h5py.File(path, 'r')
-    return torch.from_numpy(data['X'][:]), torch.from_numpy(data['Y'][:]).long()
+    imsize = 128
+    return torch.from_numpy(data['X'][:]).view(-1, 1, imsize, imsize), torch.from_numpy(data['Y'][:]).long()
 
 def trainTest(data, batch_size, network, criterion, optimizer, is_train = True):
     data_X, data_Y = data
@@ -32,7 +33,7 @@ def trainTest(data, batch_size, network, criterion, optimizer, is_train = True):
 
         pred_Y[start : end] = np.argmax(outputs.cpu().detach().numpy().copy(), axis = 1)
 
-        loss = criterion(outputs, labels) #+ 0.05 * torch.norm(feats[1], 1)
+        loss = criterion(outputs, labels)
         if is_train == True:
             loss.backward()
             optimizer.step()
@@ -62,11 +63,6 @@ print(network)
 print('Number of parameters = ', sum(p.numel() for p in network.parameters() if p.requires_grad))
 criterion = torch.nn.NLLLoss(reduction = 'sum')
 optimizer = torch.optim.Adam(network.parameters(), lr = lr)
-weight_init = torch.eye(2, requires_grad = False, device = device)
-weight_init[0, 1] = -1.0
-weight_init[1, 0] = -1.0
-network.fc_1.weight = torch.nn.Parameter(weight_init)
-network.fc_1.weight.requires_grad = False
 
 #################  Data loading ##########################
 ##########################################################

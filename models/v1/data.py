@@ -8,35 +8,43 @@ import h5py
 imsize = 128
 scale = 1.0 / 255.0
 
-## This is the file for creating the dataset for parallel lines
+## Line lengths, distance between lines, line thickness
 
-def drawLines(images, paths, min_diff, min_len):
+def drawLine(image, line_len, angle, thickness):
+    start, end, ang = (-1, -1), (-1, -1), -1
+    while any(cord < 0 or cord > imsize for cord in list(end)) is True:
+        start = tuple(np.random.randint(0, imsize, 2))
+        end = int(start[0] + line_len * np.sin(angle)), int(start[1] + line_len * np.cos(angle))
+    cv2.line(image, start, end, (255, 255, 255), thickness)
 
-	short_len, long_len = 0, 0
-	while long_len - short_len <= min_diff:
-		short_len, long_len = np.random.randint(min_len, imsize - 10, 2)
+def drawLines(image, is_parallel, image_path, min_len, max_len, angle_diff, num_lines = 2):
 
-	lens = [short_len, long_len]
+    base_angle = np.random.randint(0, 180) * np.pi / 180
+    line_len = np.random.randint(min_len, max_len)
+    thickness = np.random.randint(1, 4)
+    drawLine(image, line_len, base_angle, thickness)
 
-	for image_path, image, image_len in zip(paths, images, lens):
-		start, end, ang = (-1, -1), (-1, -1), -1
-		while any(cord < 0 or cord > imsize for cord in list(end)) is True:
-			start = tuple(np.random.randint(0, imsize, 2))
-			ang = np.random.randint(0, 360) * np.pi / 180
-			end = int(start[0] + image_len * np.sin(ang)), int(start[1] + image_len * np.cos(ang))
+    for i in range(num_lines - 1):
+        if is_parallel is False:
+            angle = base_angle + 100
+            while np.abs(angle - base_angle) > angle_diff:
+                angle = np.random.randint(0, 180) * np.pi / 180
+        else:
+            angle = base_angle
+        line_len = np.random.randint(min_len, max_len)
+        thickness = np.random.randint(1, 4)
+        drawLine(image, line_len, angle, thickness)
 
+    cv2.imwrite(image_path, image)
 
-		cv2.line(image, start, end, (255, 255, 255), 2)
-		cv2.imwrite(image_path, image)
-
-def draw(stage, num_images, seed, min_diff, min_len):
+def draw(stage, num_images, seed, min_len, max_len, angle_diff):
 
     np.random.seed(seed)
 
     for i in range(num_images):
-        short_image = np.zeros((imsize, imsize))
-        long_image = np.zeros_like(short_image)
-        drawLines([short_image, long_image], ['data/{}/{}_short.jpg'.format(stage, i), 'data/{}/{}_long.jpg'.format(stage, i)], min_diff, min_len)
+        image = np.zeros((imsize, imsize))
+        is_parallel = True if i % 2 == 0 else False
+        drawLines(image, is_parallel, 'data/{}/{}.jpg'.format(stage, i), min_len, max_len, angle_diff)
 
 def getHDF5():
 
@@ -44,15 +52,14 @@ def getHDF5():
         stage_images = []
         stage_labels = []
         image_ids = []
-        num_images = len(os.listdir('data/{}'.format(stage))) // 2
+        num_images = len(os.listdir('data/{}'.format(stage)))
         for i in range(num_images):
-            short_image = cv2.imread('data/{}/{}_short.jpg'.format(stage, i), 0)
-            long_image = cv2.imread('data/{}/{}_long.jpg'.format(stage, i), 0)
+            image = cv2.imread('data/{}/{}.jpg'.format(stage, i), 0)
             if i % 2 == 0:
-                stage_images.append(np.stack([short_image, long_image]))
+                stage_images.append(image)
                 stage_labels.append(0)
             else:
-                stage_images.append(np.stack([long_image, short_image]))
+                stage_images.append(image)
                 stage_labels.append(1)
         if 'train' in stage:
             train_X = np.float32(stage_images) * scale
@@ -98,7 +105,7 @@ if os.path.isdir('data/test'):
 os.mkdir('data/train')
 os.mkdir('data/valid')
 os.mkdir('data/test')
-draw('train', 20000, 1001, 50, 30)
-draw('valid', 100, 1729, 30, 30)
-draw('test', 100, 1123, 10, 30)
+draw('train', 100000, 1001, 30, 40, 30)
+draw('valid', 1000, 1729, 20, 50, 20)
+draw('test', 1000, 1123, 10, 60, 10)
 getHDF5()
