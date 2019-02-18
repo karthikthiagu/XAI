@@ -9,7 +9,7 @@ import torch
 
 from argparser import parseArguments
 
-from model import Network
+from model_clamp import Network
 
 device = torch.device('cpu')
 np.random.seed(1001)

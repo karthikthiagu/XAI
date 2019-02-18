@@ -11,9 +11,10 @@ import torch
 
 from argparser import parseArguments
 
-from model import Network
+from model_clamp import Network
 
-device = torch.device('cuda')
+#device = torch.device('cuda')
+device = torch.device('cpu')
 np.random.seed(1001)
 
 def loadData(path):

@@ -6,7 +6,7 @@ import torch
 
 from argparser import parseArguments
 
-from model import Network
+from model_clamp import Network
 
 device = torch.device('cuda')
 np.random.seed(1001)
@@ -29,7 +29,7 @@ def trainTest(data, batch_size, network, criterion):
 
         pred_Y[start : end] = np.argmax(outputs.cpu().detach().numpy().copy(), axis = 1)
 
-        loss = criterion(outputs, labels) + 0.005 * torch.norm(feats[1], 1)
+        loss = criterion(outputs, labels)
 
         running_loss += loss.item()
 
