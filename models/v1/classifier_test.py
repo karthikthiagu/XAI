@@ -13,7 +13,8 @@ np.random.seed(1001)
 
 def loadData(path):
     data = h5py.File(path, 'r')
-    return torch.from_numpy(data['X'][:]), torch.from_numpy(data['Y'][:]).long()
+    imsize = 128
+    return torch.from_numpy(data['X'][:]).view(-1, 1, imsize, imsize), torch.from_numpy(data['Y'][:]).long()
 
 def trainTest(data, batch_size, network, criterion):
     data_X, data_Y = data

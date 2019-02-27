@@ -46,7 +46,7 @@ os.mkdir(os.path.join(plot_folder, '1'))
 imsize = 128
 feat_size = imsize // 8
 font = cv2.FONT_HERSHEY_SIMPLEX
-for index in range(test_X.shape[0]):
+for index in range(test_X.shape[0])[ : 100]:
     label = test_Y[index]
     # Get predictions
     prob, feats = network(test_X[index].view(1, 1, imsize, imsize))
@@ -54,6 +54,7 @@ for index in range(test_X.shape[0]):
     pred = np.argmax(prob)
 
     # Get intermediate activations and features
+    print(feats[0].size())
     feat = feats[0].view((num_maps, feat_size, feat_size)).detach().cpu().numpy()
     flat = feats[1].view((num_maps)).detach().cpu().numpy()
     W = network.state_dict()['fc_1.weight'].detach().cpu().numpy()
@@ -69,7 +70,7 @@ for index in range(test_X.shape[0]):
         cam = cv2.resize(cam, (imsize, imsize))
 
         # Plot maps
-        rows, cols = 3, 4
+        rows, cols = 5, 4
         fig, axes = plt.subplots(rows, cols)
         for i in range(rows):
             for j in range(cols):

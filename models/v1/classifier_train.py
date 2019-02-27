@@ -63,6 +63,11 @@ print(network)
 print('Number of parameters = ', sum(p.numel() for p in network.parameters() if p.requires_grad))
 criterion = torch.nn.NLLLoss(reduction = 'sum')
 optimizer = torch.optim.Adam(network.parameters(), lr = lr)
+#weight_init = torch.eye(2, requires_grad = False, device = device)
+#weight_init[0, 1] = -1.0
+#weight_init[1, 0] = -1.0
+#network.fc_1.weight = torch.nn.Parameter(weight_init)
+#network.fc_1.weight.requires_grad = False
 
 #################  Data loading ##########################
 ##########################################################

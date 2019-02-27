@@ -52,7 +52,7 @@ spec:
   # You can specify a label indicating a specific model of GPU here when you need it.
   # Leave it commented when learning how to use the cluster.
   nodeSelector:
-    #kubernetes.io/hostname: boole
+    #kubernetes.io/hostname: knuth
     gputype: 1080ti
   # This part specifies the Docker container in which your code will run.
   containers:
@@ -73,11 +73,11 @@ spec:
         alpha.kubernetes.io/nvidia-gpu: 1 # Number of GPUs
         # RAM can be specified in either MiB (1024x1024 bytes) (ex. "500Mi")
         # or GiB (ex. "4Gi")
-        memory: "10Gi"
-        cpu: "6" # Number of CPU cores
+        memory: "20Gi"
+        cpu: "8" # Number of CPU cores
       requests:
-        memory: "10Gi"
-        cpu: "6"
+        memory: "20Gi"
+        cpu: "8"
     # Here, you can specify where you want the above directories to be mounted
     # within the container. It is recommended to use this configuration as
     # it mirrors what is present on the master machine.

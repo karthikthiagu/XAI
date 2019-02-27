@@ -21,7 +21,8 @@ def drawLines(image, is_parallel, image_path, min_len, max_len, angle_diff, num_
 
     base_angle = np.random.randint(0, 180) * np.pi / 180
     line_len = np.random.randint(min_len, max_len)
-    thickness = np.random.randint(1, 4)
+    #thickness = np.random.randint(1, 4)
+    thickness = 2
     drawLine(image, line_len, base_angle, thickness)
 
     for i in range(num_lines - 1):
@@ -32,7 +33,7 @@ def drawLines(image, is_parallel, image_path, min_len, max_len, angle_diff, num_
         else:
             angle = base_angle
         line_len = np.random.randint(min_len, max_len)
-        thickness = np.random.randint(1, 4)
+        #thickness = np.random.randint(1, 4)
         drawLine(image, line_len, angle, thickness)
 
     cv2.imwrite(image_path, image)
@@ -105,7 +106,7 @@ if os.path.isdir('data/test'):
 os.mkdir('data/train')
 os.mkdir('data/valid')
 os.mkdir('data/test')
-draw('train', 100000, 1001, 30, 40, 30)
-draw('valid', 1000, 1729, 20, 50, 20)
-draw('test', 1000, 1123, 10, 60, 10)
+draw('train', 50000, 1001, 60, 61, 50)
+draw('valid', 1000, 1729, 60, 61, 40)
+draw('test', 1000, 1123, 60, 61, 30)
 getHDF5()

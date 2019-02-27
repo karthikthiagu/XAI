@@ -1,0 +1,16 @@
+Network(
+  (conv1): Conv2d(1, 16, kernel_size=(9, 9), stride=(1, 1), padding=(4, 4), bias=False)
+  (conv2): Conv2d(16, 16, kernel_size=(9, 9), stride=(2, 2), padding=(4, 4), bias=False)
+  (conv3): Conv2d(16, 16, kernel_size=(9, 9), stride=(2, 2), padding=(4, 4), bias=False)
+  (conv4): Conv2d(16, 3, kernel_size=(9, 9), stride=(2, 2), padding=(4, 4), bias=False)
+  (pool): MaxPool2d(kernel_size=(16, 16), stride=(16, 16), padding=0, dilation=1, ceil_mode=False)
+  (fc_1): Linear(in_features=3, out_features=2, bias=False)
+)
+Number of parameters =  46662
+Load data
+torch.Size([1000, 1, 128, 128]) torch.Size([1000])
+Test loss for random basline = 0.693171778678894
+Loaded model, starting prediction
+Accuracy = 94.69999999999999%
+Test loss = 3.2867056369781493
+Time taken (ms) = 0.17213654518127441
