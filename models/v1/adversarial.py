@@ -68,7 +68,7 @@ def generate(orig_image, label, network):
     flag = 0
     for epsilon in [0.001, 0.005, 0.01, 0.05, 0.1]:
         orig_image.requires_grad = True
-        output, _ = network(orig_image.view(1, 2, 128, 128))
+        output, _ = network(orig_image.view(1, 1, 128, 128))
         prob = np.exp(output[0].detach().cpu().numpy())
         o_pred = np.argmax(prob)
 
@@ -79,7 +79,7 @@ def generate(orig_image, label, network):
 
         perturbed_image = fgsm_attack(orig_image, epsilon, data_grad)
         
-        output, _ = network(perturbed_image.view(1, 2, 128, 128))
+        output, _ = network(perturbed_image.view(1, 1, 128, 128))
         prob = np.exp(output[0].detach().cpu().numpy())
         p_pred = np.argmax(prob)
 
@@ -94,7 +94,7 @@ def generate(orig_image, label, network):
         return (1, perturbed_image, epsilon)
 
 def plot(image, network, axes, plot_index):
-    prob, feats = network(image.view(1, 2, imsize, imsize))
+    prob, feats = network(image.view(1, 1, imsize, imsize))
     prob = np.exp(prob[0].detach().cpu().numpy())
     pred = np.argmax(prob)
 
@@ -117,28 +117,26 @@ def plot(image, network, axes, plot_index):
 for index in range(test_X.shape[0])[:100]:
     o_image = test_X[index]
     label = test_Y[index]
-    flag, p_image, epsilon = generate(test_X[index].view(1, 2, imsize, imsize), label.view(1), network)
+    flag, p_image, epsilon = generate(test_X[index].view(1, 1, imsize, imsize), label.view(1), network)
     if flag == 0:
         continue
 
     plot_indices = [0, 1]
     for plot_index in plot_indices:
-        rows, cols = 2, 4
+        rows, cols = 3, 3
         fig, axes = plt.subplots(rows, cols)
         fig.set_size_inches(10, 10)
         for i in range(rows):
             for j in range(cols):
                 axes[i, j].axis('off')
-        o_image_ = o_image.detach().cpu().numpy().reshape((2, imsize, imsize)) * 255.0
-        p_image_ = p_image.detach().cpu().numpy().reshape((2, imsize, imsize)) * 255.0
+        o_image_ = o_image.detach().cpu().numpy().reshape((imsize, imsize)) * 255.0
+        p_image_ = p_image.detach().cpu().numpy().reshape((imsize, imsize)) * 255.0
 
-        axes[0, 0].imshow(o_image_[0], cmap = 'gray')
-        axes[0, 1].imshow(o_image_[1], cmap = 'gray')
-        axes[0, 2].imshow(p_image_[0], cmap = 'gray')
-        axes[0, 3].imshow(p_image_[1], cmap = 'gray')
+        axes[0, 0].imshow(o_image_, cmap = 'gray')
+        axes[0, 2].imshow(p_image_, cmap = 'gray')
 
-        o_pred = plot(o_image, network, [axes[1, 0], axes[1, 1]], plot_index)
-        p_pred = plot(p_image, network, [axes[1, 2], axes[1, 3]], plot_index)
+        o_pred = plot(o_image, network, [axes[1, 0], axes[1, 1], axes[1, 2]], plot_index)
+        p_pred = plot(p_image, network, [axes[2, 0], axes[2, 1], axes[2, 2]], plot_index)
         equation = r'$x + \epsilon sign(\nabla_{x} J(y, f(x)))$'
         plt.suptitle('FSGM attack\n{}\n\nLabel = {}, Original prediction = {}, Adversarial prediction = {}\nepsilon = {}'.format(equation, label.cpu().detach().numpy(), o_pred, p_pred, epsilon))
         plot_path = '{}/{}/{}.png'.format(plot_folder, plot_index, index)

@@ -10,6 +10,6 @@ export CUDA_HOME=/tools/cuda-9.0
 # Tools config for CUDA, Anaconda installed in the common /tools directory
 cd /storage/home/karthikt/XAI
 source /scratch/scratch4/karthikt/envs/magic35/bin/activate
-python -u models/v1/classifier_train.py --epochs 15 --lr 0.001 --batch_size 20 --num_maps 3 --patience 10 --limit 4 --save_model 'models/v1/classifier' &> models/v1/log_train
-python -u models/v1/classifier_test.py --batch_size 10 --num_maps 3 --load_model 'models/v1/classifier' --save_results 'models/v1/results' &> models/v1/log_test
-python -u models/v1/visualize.py --load_model 'models/v1/classifier' --plot_folder 'models/v1/plots' --num_maps 3 &> models/v1/log_vizualize
+python -u models/v1/autoencoder_train.py --epochs 15 --lr 0.001 --batch_size 20 --num_maps 3 --patience 10 --limit 4 --save_model 'models/v1/autoencoder' &> models/v1/log_auto_train
+python -u models/v1/autoencoder_test.py --batch_size 100 --num_maps 3 --load_model 'models/v1/autoencoder' --save_results '/scratch/scratch2/karthikt/data/feats.h5' &> models/v1/log_auto_test
+python -u models/v1/autoencoder_visualize.py --num_maps 3 --test_file '/scratch/scratch2/karthikt/data/feats.h5' --plot_folder 'models/v1/recon' &> models/v1/log_auto_visuzlize 

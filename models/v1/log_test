@@ -9,8 +9,8 @@ Network(
 Number of parameters =  46662
 Load data
 torch.Size([1000, 1, 128, 128]) torch.Size([1000])
-Test loss for random basline = 0.693171778678894
+Test loss for random basline = 0.6935688261985778
 Loaded model, starting prediction
-Accuracy = 94.69999999999999%
-Test loss = 3.2867056369781493
-Time taken (ms) = 0.17213654518127441
+Accuracy = 97.39999999999999%
+Test loss = 1.076190625190735
+Time taken (ms) = 0.20748043060302734

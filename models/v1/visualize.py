@@ -62,15 +62,17 @@ for index in range(test_X.shape[0])[ : 100]:
     plot_indices = [0, 1]
     for plot_index in plot_indices:
         # Get CAM
+        '''
         cam = np.zeros((feat_size, feat_size))
         for i in range(feat.shape[0]):
             cam += W[plot_index, i] * feat[i]
         cam = cam - np.min(cam)
         cam = cam / (np.max(cam) + 0.00001) * 255.0
         cam = cv2.resize(cam, (imsize, imsize))
+        '''
 
         # Plot maps
-        rows, cols = 5, 4
+        rows, cols = 2, 3
         fig, axes = plt.subplots(rows, cols)
         for i in range(rows):
             for j in range(cols):
@@ -80,7 +82,7 @@ for index in range(test_X.shape[0])[ : 100]:
         text = 'Label = {}, Prediction = {}\n Prob for class {} = {:.4f}\n Map for class {}'.format(label, pred, plot_index, prob[plot_index], plot_index)
         plt.suptitle(text)
         axes[0, 0].imshow(image, cmap = 'gray')
-        axes[0, 1].imshow(cam, cmap = 'jet')
+        #axes[0, 1].imshow(cam, cmap = 'jet')
 
         for m in range(num_maps):
             mplot = np.copy(feat[m])

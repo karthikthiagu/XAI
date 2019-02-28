@@ -6,7 +6,7 @@ import torch
 
 from argparser import parseArguments
 
-from model import Network
+from auto import Network
 
 device = torch.device('cuda')
 np.random.seed(1001)
@@ -24,27 +24,21 @@ def trainTest(data, batch_size, network, criterion, optimizer, is_train = True):
     for batch in range(num_batches):
         # get the inputs
         start, end = batch * batch_size, (batch + 1) * batch_size
-        inputs, labels = data_X[start : end].to(device), data_Y[start : end].to(device)
+        inputs = data_X[start : end].to(device)
         # zero the parameter gradients
         if is_train == True:
             optimizer.zero_grad()
 
         outputs, feats = network(inputs)
 
-        pred_Y[start : end] = np.argmax(outputs.cpu().detach().numpy().copy(), axis = 1)
-
-        loss = criterion(outputs, labels)
+        loss = criterion(outputs, inputs)
         if is_train == True:
             loss.backward()
             optimizer.step()
 
         running_loss += loss.item()
 
-    return running_loss / data_X.shape[0], pred_Y
-
-def getAcc(pred, truth):
-    return np.float32(np.sum(np.int32(pred) == np.int32(truth))) / pred.shape[0] * 100
-
+    return running_loss / data_X.shape[0]
 
 ################# Argument parsing ########################
 ###########################################################
@@ -61,7 +55,7 @@ load_model, save_model = args.load_model, args.save_model
 network = Network(num_maps).to(device)
 print(network)
 print('Number of parameters = ', sum(p.numel() for p in network.parameters() if p.requires_grad))
-criterion = torch.nn.NLLLoss(reduction = 'sum')
+criterion = torch.nn.MSELoss(reduction = 'sum')
 optimizer = torch.optim.Adam(network.parameters(), lr = lr)
 
 #################  Data loading ##########################
@@ -73,7 +67,7 @@ print(train_X.size(), train_Y.size())
 
 ################# Testing for random baseline ##############
 ############################################################
-test_loss, _ = trainTest((valid_X, valid_Y), batch_size, network, criterion, optimizer, is_train = False)
+test_loss = trainTest((valid_X, valid_Y), batch_size, network, criterion, optimizer, is_train = False)
 print('Test loss for random basline = {}'.format(test_loss))
 
 ################# Checking finetune conditions #############
@@ -89,12 +83,10 @@ loss_history = [np.inf]
 impatience= 0
 best_epoch, best_valid_loss = 0, np.inf
 for epoch in range(epochs):
-    valid_loss, valid_pred = trainTest((valid_X, valid_Y), batch_size, network, criterion, optimizer, is_train = False)
-    train_loss, train_pred = trainTest((train_X, train_Y), batch_size, network, criterion, optimizer, is_train = True)
-    train_acc, valid_acc = getAcc(train_pred, train_Y.numpy()), getAcc(valid_pred, valid_Y.numpy())
+    valid_loss = trainTest((valid_X, valid_Y), batch_size, network, criterion, optimizer, is_train = False)
+    train_loss = trainTest((train_X, train_Y), batch_size, network, criterion, optimizer, is_train = True)
 
     print('Epoch {}, Training-Loss = {:.4f}, Valid-Loss = {:.4f}'.format(epoch, train_loss, valid_loss))
-    print('Epoch {}, Training-acc = {:.4f}, Valid-acc = {:.4f}'.format(epoch, train_acc, valid_acc))
 
     impatience += 1
     if valid_loss < min(loss_history):
